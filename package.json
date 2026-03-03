@@ -1,0 +1,48 @@
+{
+  "name": "website",
+  "version": "1.0.0",
+  "description": "BookSaw website",
+  "keywords": [
+    "website"
+  ],
+  "homepage": "https://github.com/ChooYankuan/website#readme",
+  "bugs": {
+    "url": "https://github.com/ChooYankuan/website/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ChooYankuan/website.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@react-three/drei": "^9.122.0",
+    "@react-three/fiber": "^8.18.0",
+    "@types/three": "0.152.1",
+    "jotai": "^2.8.4",
+    "leva": "^0.9.35",
+    "maath": "^0.10.8",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "three": "^0.166.1",
+    "three-stdlib": "^2.30.4",
+    "wiggle": "^0.0.17"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.2.1",
+    "@types/react": "^18.0.27",
+    "@types/react-dom": "^18.0.10",
+    "@vitejs/plugin-react": "^5.1.4",
+    "autoprefixer": "^10.4.27",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.2.1",
+    "vite": "^7.3.1"
+  }
+}
