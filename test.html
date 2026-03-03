@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BOOKSAW</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Cormorant+Garamond:wght@300;400;500&family=Josefin+Sans:wght@300;400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --cream: #f0ede6;
+    --dark: #1a1a1a;
+    --muted: #888;
+    --red: #c0392b;
+    --border: #d8d4cc;
+  }
+
+  body {
+    font-family: 'Josefin Sans', sans-serif;
+    background: var(--cream);
+    color: var(--dark);
+    font-size: 13px;
+    letter-spacing: 0.03em;
+  }
+
+  /* TOP BAR */
+  .topbar {
+    background: var(--cream);
+    border-bottom: 1px solid var(--border);
+    padding: 8px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+  }
+  .topbar-socials { display: flex; gap: 14px; }
+  .topbar-socials a { color: var(--muted); text-decoration: none; font-size: 12px; }
+  .topbar-socials a:hover { color: var(--dark); }
+  .topbar-right { display: flex; gap: 22px; }
+  .topbar-right a { color: var(--muted); text-decoration: none; font-size: 11px; letter-spacing: 0.1em; }
+  .topbar-right a:hover { color: var(--dark); }
+
+  /* NAV */
+  nav {
+    background: var(--cream);
+    padding: 18px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+  }
+  .logo {
+    font-family: 'Josefin Sans', sans-serif;
+    font-weight: 400;
+    font-size: 22px;
+    letter-spacing: 0.2em;
+    color: var(--dark);
+    text-decoration: none;
+  }
+  .nav-links { display: flex; gap: 32px; list-style: none; }
+  .nav-links a {
+    text-decoration: none;
+    color: var(--dark);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    font-weight: 400;
+  }
+  .nav-links a:hover { color: var(--muted); }
+  .nav-links a.active { border-bottom: 1px solid var(--dark); }
+  .hamburger { font-size: 18px; cursor: pointer; color: var(--dark); }
+
+  /* HERO */
+  .hero {
+    background: var(--cream);
+    padding: 70px 80px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    min-height: 380px;
+    overflow: hidden;
+  }
+  .hero-content { max-width: 380px; }
+  .hero-content h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 52px;
+    line-height: 1.1;
+    font-weight: 400;
+    margin-bottom: 20px;
+    color: var(--dark);
+  }
+  .hero-content p {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 15px;
+    color: #666;
+    line-height: 1.7;
+    margin-bottom: 30px;
+    font-weight: 300;
+  }
+  .btn-outline {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid var(--dark);
+    padding: 10px 22px;
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    color: var(--dark);
+    text-decoration: none;
+    transition: all 0.25s;
+  }
+  .btn-outline:hover { background: var(--dark); color: var(--cream); }
+  .hero-book {
+    position: relative;
+    width: 200px;
+    flex-shrink: 0;
+  }
+  .hero-book img {
+    width: 100%;
+    box-shadow: 12px 16px 40px rgba(0,0,0,0.18);
+    display: block;
+  }
+  .hero-circle {
+    position: absolute;
+    width: 260px;
+    height: 260px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.5);
+    right: 120px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 0;
+  }
+  .hero-book { position: relative; z-index: 1; }
+
+  .hero-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 20px;
+    color: var(--dark);
+    cursor: pointer;
+    background: none;
+    border: none;
+    opacity: 0.5;
+  }
+  .hero-arrow:hover { opacity: 1; }
+  .hero-arrow.left { left: 30px; }
+  .hero-arrow.right { right: 30px; }
+
+  .hero-dots {
+    position: absolute;
+    bottom: 28px;
+    left: 80px;
+    display: flex;
+    gap: 8px;
+  }
+  .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--dark);
+    opacity: 0.2;
+    cursor: pointer;
+  }
+  .dot.active { opacity: 1; }
+
+  /* PARTNERS */
+  .partners {
+    background: #e8e4dc;
+    padding: 28px 80px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+  }
+  .partner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    opacity: 0.55;
+  }
+  .partner:hover { opacity: 1; }
+  .partner-icon { font-size: 26px; }
+  .partner span {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--dark);
+  }
+
+  /* FEATURED */
+  .featured {
+    padding: 70px 80px;
+    background: var(--cream);
+  }
+  .section-label {
+    text-align: center;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 38px;
+    font-weight: 400;
+    text-align: center;
+    margin-bottom: 50px;
+  }
+
+  /* CAROUSEL */
+  .carousel-wrapper {
+    position: relative;
+  }
+  .carousel-track-outer {
+    overflow: hidden;
+  }
+  .carousel-track {
+    display: flex;
+    gap: 30px;
+    transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+  .book-card {
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+    flex: 0 0 calc(25% - 23px);
+    min-width: 0;
+  }
+  .book-cover {
+    position: relative;
+    overflow: hidden;
+    background: #ddd;
+    aspect-ratio: 2/3;
+    margin-bottom: 16px;
+  }
+  .book-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+  }
+  .book-card:hover .book-cover img { transform: scale(1.04); }
+  .add-to-cart {
+    position: absolute;
+    bottom: 0;
+    left: 0; right: 0;
+    background: var(--dark);
+    color: var(--cream);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-align: center;
+    padding: 12px;
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+    cursor: pointer;
+  }
+  .book-card:hover .add-to-cart { transform: translateY(0); }
+
+  .book-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 16px;
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+  .book-author {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    margin-bottom: 6px;
+  }
+  .book-price {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 13px;
+    color: var(--dark);
+    letter-spacing: 0.05em;
+  }
+
+  .carousel-btn {
+    position: absolute;
+    top: 38%;
+    transform: translateY(-50%);
+    background: var(--cream);
+    border: 1px solid var(--border);
+    width: 38px; height: 38px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    font-size: 16px;
+    color: var(--dark);
+    z-index: 2;
+    transition: background 0.2s, color 0.2s;
+  }
+  .carousel-btn:hover { background: var(--dark); color: var(--cream); }
+  .carousel-btn.prev { left: -50px; }
+  .carousel-btn.next { right: -50px; }
+  .carousel-btn:disabled { opacity: 0.3; cursor: default; }
+  .carousel-btn:disabled:hover { background: var(--cream); color: var(--dark); }
+
+  .featured-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 40px;
+  }
+  .page-dots { display: flex; gap: 8px; }
+  .view-all {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--dark);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border-bottom: 1px solid var(--dark);
+    padding-bottom: 2px;
+  }
+  .view-all:hover { color: var(--muted); border-color: var(--muted); }
+
+  /* Placeholder book covers using CSS */
+  .cover-1 { background: linear-gradient(135deg, #2c1810 0%, #5c2e1a 100%); }
+  .cover-2 { background: linear-gradient(135deg, #8b2c2c 0%, #c0392b 50%, #f39c12 100%); }
+  .cover-3 { background: linear-gradient(135deg, #1a6b5a 0%, #27ae60 100%); }
+  .cover-4 { background: linear-gradient(135deg, #7f5c3e 0%, #c5a882 100%); }
+  .cover-text {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    text-align: center;
+    color: white;
+    font-family: 'Cormorant Garamond', serif;
+  }
+  .cover-text .ct { font-size: 13px; font-weight: 500; line-height: 1.3; margin-bottom: 8px; }
+  .cover-text .ca { font-size: 10px; opacity: 0.7; letter-spacing: 0.1em; }
+
+  /* Hero book cover */
+  .hero-cover {
+    width: 200px;
+    height: 280px;
+    background: linear-gradient(160deg, #3d8fa6 0%, #c0392b 40%, #8b6914 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 20px;
+    box-shadow: 12px 16px 40px rgba(0,0,0,0.25);
+    text-align: center;
+    color: white;
+    font-family: 'Playfair Display', serif;
+  }
+  .hero-cover .hct { font-size: 14px; line-height: 1.3; margin-bottom: 8px; }
+  .hero-cover .hca { font-size: 11px; letter-spacing: 0.2em; color: #f1c40f; }
+  .hero-cover-trees {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 60%;
+    background: linear-gradient(180deg, #3d8fa6 0%, transparent 100%);
+    opacity: 0.6;
+  }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  .hero-content { animation: fadeIn 0.7s ease both; }
+  .hero-book { animation: fadeIn 0.7s 0.2s ease both; }
+  .books-grid .book-card:nth-child(1) { animation: fadeIn 0.5s 0.1s ease both; }
+  .books-grid .book-card:nth-child(2) { animation: fadeIn 0.5s 0.2s ease both; }
+  .books-grid .book-card:nth-child(3) { animation: fadeIn 0.5s 0.3s ease both; }
+  .books-grid .book-card:nth-child(4) { animation: fadeIn 0.5s 0.4s ease both; }
+</style>
+</head>
+
+<body>
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-socials">
+    <a href="#" data-i18n="title">BookSAW</a>
+  </div>
+<div class="lang-switch">
+  <button onclick="setLang('en')">EN</button>
+  <button onclick="setLang('zh')">中文</button>
+</div>
+  <div class="topbar-right">
+    <a href="#" data-i18n="account">⊙ ACCOUNT</a>
+    <a href="#" data-i18n="cart">⊡ CART (0)</a>
+    <a href="#" data-i18n="search">⌕ SEARCH</a>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="logo">BOOKSAW</a>
+  <ul class="nav-links">
+    <li><a href="#" class="active" data-i18n="home">HOME</a></li>
+    <li><a href="#" data-i18n="about">ABOUT</a></li>
+    <li><a href="#" data-i18n="pages">PAGES</a></li>
+    <li><a href="1.html" data-i18n="shop">SHOP</a></li>
+    <li><a href="#" data-i18n="articles">ARTICLES</a></li>
+    <li><a href="#" data-i18n="contact">CONTACT</a></li>
+  </ul>
+  <div class="hamburger">≡</div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <button class="hero-arrow left">←</button>
+
+  <div class="hero-content">
+    <h1>The Last Quarter<br>Of The Moon</h1>
+    <p>In this sweeping epic full of love and loss, a woman from one of the last remote reindeer-herding tribes of northeastern China tells the story of her family and the last century of her country's history.</p>
+    <a href="#" class="btn-outline" data-i18n="read">READ MORE →</a>
+  </div>
+
+  <div class="hero-circle"></div>
+
+  <div class="hero-book">
+    <div class="hero-cover">
+      <div class="hero-cover-trees"></div>
+      <div class="hct">The Last Quarter<br>of the Moon</div>
+      <div class="hca">CHI ZIJIAN</div>
+    </div>
+  </div>
+
+  <button class="hero-arrow right">→</button>
+
+  <div class="hero-dots">
+    <div class="dot active"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+  </div>
+</section>
+
+<!-- PARTNERS -->
+<div class="partners">
+  <div class="partner">
+    <div class="partner-icon">📚</div>
+    <span>Bookstore</span>
+  </div>
+  <div class="partner">
+    <div class="partner-icon">🦌</div>
+    <span>Bookdeer</span>
+  </div>
+  <div class="partner">
+    <div class="partner-icon">🏛</div>
+    <span>Library</span>
+  </div>
+  <div class="partner">
+    <div class="partner-icon">📖</div>
+    <span>Flaprise</span>
+  </div>
+  <div class="partner">
+    <div class="partner-icon">🔖</div>
+    <span>Readerly</span>
+  </div>
+</div>
+
+<!-- FEATURED BOOKS -->
+<section class="featured">
+  <p class="section-label" data-i18n="quality">Some Quality Items</p>
+  <h2 class="section-title" data-i18n="featured">Featured Books</h2>
+
+  <div class="carousel-wrapper">
+    <button class="carousel-btn prev" id="prevBtn" disabled>←</button>
+    <div class="carousel-track-outer">
+      <div class="carousel-track" id="carouselTrack">
+
+        <div class="book-card">
+          <div class="book-cover">
+            <div class="cover-1" style="position:absolute;inset:0;"></div>
+            <div class="cover-text"><div class="ct">Chronicle of A Blood Merchant</div><div class="ca">YU HUA</div></div>
+            <div class="add-to-cart">ADD TO CART</div>
+          </div>
+          <div class="book-title">Chronicle Of A Blood Merchant</div>
+          <div class="book-author">Yu Hua</div>
+          <div class="book-price">$ 21.60</div>
+        </div>
+
+        <div class="book-card">
+          <div class="book-cover">
+            <div class="cover-2" style="position:absolute;inset:0;"></div>
+            <div class="cover-text"><div class="ct">Red Sorghum</div><div class="ca">MO YAN</div></div>
+            <div class="add-to-cart">ADD TO CART</div>
+          </div>
+          <div class="book-title">Red Sorghum</div>
+          <div class="book-author">Mo Yan</div>
+          <div class="book-price">$ 20.30</div>
+        </div>
+
+        <div class="book-card">
+          <div class="book-cover">
+            <div class="cover-3" style="position:absolute;inset:0;"></div>
+            <div class="cover-text"><div class="ct">The Day The Sun Died</div><div class="ca">YAN LIANKE</div></div>
+            <div class="add-to-cart">ADD TO CART</div>
+          </div>
+          <div class="book-title">The Day The Sun Died</div>
+          <div class="book-author">Yan Lianke</div>
+          <div class="book-price">$ 11.20</div>
+        </div>
+
+        <div class="book-card">
+          <div class="book-cover">
+            <div class="cover-4" style="position:absolute;inset:0;"></div>
+            <div class="cover-text"><div class="ct">Love In A Fallen City</div><div class="ca">EILEEN CHANG</div></div>
+            <div class="add-to-cart">ADD TO CART</div>
+          </div>
+          <div class="book-title">Love In A Fallen City</div>
+          <div class="book-author">Eileen Chang</div>
+          <div class="book-price">$ 19.20</div>
+        </div>
+
+        <div class="book-card">
+          <div class="book-cover">
+            <div style="position:absolute;inset:0;background:linear-gradient(135deg,#1a2a4a 0%,#2e4a7a 100%);"></div>
+            <div class="cover-text"><div class="ct">Waiting</div><div class="ca">HA JIN</div></div>
+            <div class="add-to-cart">ADD TO CART</div>
+          </div>
+          <div class="book-title">Waiting</div>
+          <div class="book-author">Ha Jin</div>
+          <div class="book-price">$ 16.50</div>
+        </div>
+
+        <div class="book-card">
+          <div class="book-cover">
+            <div style="position:absolute;inset:0;background:linear-gradient(135deg,#3d2a1a 0%,#8b6040 60%,#c49a6c 100%);"></div>
+            <div class="cover-text"><div class="ct">Dream of the Red Chamber</div><div class="ca">CAO XUEQIN</div></div>
+            <div class="add-to-cart">ADD TO CART</div>
+          </div>
+          <div class="book-title">Dream of the Red Chamber</div>
+          <div class="book-author">Cao Xueqin</div>
+          <div class="book-price">$ 24.00</div>
+        </div>
+
+        <div class="book-card">
+          <div class="book-cover">
+            <div style="position:absolute;inset:0;background:linear-gradient(135deg,#1a3a2a 0%,#2d6a4f 100%);"></div>
+            <div class="cover-text"><div class="ct">Soul Mountain</div><div class="ca">GAO XINGJIAN</div></div>
+            <div class="add-to-cart">ADD TO CART</div>
+          </div>
+          <div class="book-title">Soul Mountain</div>
+          <div class="book-author">Gao Xingjian</div>
+          <div class="book-price">$ 18.90</div>
+        </div>
+
+        <div class="book-card">
+          <div class="book-cover">
+            <div style="position:absolute;inset:0;background:linear-gradient(135deg,#4a1a2a 0%,#9b2335 100%);"></div>
+            <div class="cover-text"><div class="ct">The Garlic Ballads</div><div class="ca">MO YAN</div></div>
+            <div class="add-to-cart">ADD TO CART</div>
+          </div>
+          <div class="book-title">The Garlic Ballads</div>
+          <div class="book-author">Mo Yan</div>
+          <div class="book-price">$ 15.75</div>
+        </div>
+
+      </div>
+    </div>
+    <button class="carousel-btn next" id="nextBtn">→</button>
+  </div>
+
+  <div class="featured-footer">
+    <div class="page-dots" id="carouselDots"></div>
+    <a href="#" class="view-all" data-i18n="view">View All Products →</a>
+  </div>
+</section>
+
+<!-- 3D BOOK EXPERIENCE -->
+<section class="book3d-section">
+  <p class="section-label" data-i18n="interact">Interactive Preview</p>
+  <h2 class="section-title" data-i18n="flipBook">Flip Through The Book</h2>
+  
+<link rel="stylesheet" href="styles.css">
+  <header class="container"><button onclick="window.location.href='interact.html'" data-i18n="click">Click me</button></header>
+</section>
+
+<script>
+  const track = document.getElementById('carouselTrack');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const dotsContainer = document.getElementById('carouselDots');
+
+  const visibleCount = 4;
+  const cards = Array.from(track.querySelectorAll('.book-card'));
+  const total = cards.length;
+  const pageCount = Math.ceil(total / visibleCount);
+  let currentPage = 0;
+
+  // Create dots
+  for (let i = 0; i < pageCount; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'dot' + (i === 0 ? ' active' : '');
+    dot.addEventListener('click', () => goTo(i));
+    dotsContainer.appendChild(dot);
+  }
+
+  function goTo(page) {
+    currentPage = page;
+    const cardWidth = cards[0].getBoundingClientRect().width;
+    const gap = 30;
+    const offset = page * visibleCount * (cardWidth + gap);
+    track.style.transform = `translateX(-${offset}px)`;
+
+    prevBtn.disabled = page === 0;
+    nextBtn.disabled = page >= pageCount - 1;
+
+    dotsContainer.querySelectorAll('.dot').forEach((d, i) => {
+      d.classList.toggle('active', i === page);
+    });
+  }
+
+  prevBtn.addEventListener('click', () => { if (currentPage > 0) goTo(currentPage - 1); });
+  nextBtn.addEventListener('click', () => { if (currentPage < pageCount - 1) goTo(currentPage + 1); });
+
+  // Touch/swipe support
+  let startX = 0;
+  track.addEventListener('touchstart', e => { startX = e.touches[0].clientX; });
+  track.addEventListener('touchend', e => {
+    const diff = startX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 50) {
+      if (diff > 0 && currentPage < pageCount - 1) goTo(currentPage + 1);
+      else if (diff < 0 && currentPage > 0) goTo(currentPage - 1);
+    }
+  });
+</script>
+<script src="lang.js"></script>
+</body>
+</html>

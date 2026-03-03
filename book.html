@@ -1,0 +1,466 @@
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Interactive Book</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { margin: 0; overflow: hidden; background: #0f0f0f; }
+        #canvas-container { width: 100vw; height: 100vh; }
+        .overlay {
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            pointer-events: none;
+            z-index: 10;
+        }
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-family: sans-serif;
+            font-size: 1.5rem;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div id="loading" class="loading">Loading 3D Book...</div>
+    <div id="canvas-container"></div>
+    
+    <div class="overlay">
+        <h1 class="text-4xl font-bold text-white mb-2 tracking-tight drop-shadow-lg">Interactive 3D Book</h1>
+        <p class="text-gray-400 text-sm">Drag to rotate • Scroll to zoom • Hover to tilt</p>
+    </div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
+
+        // Scene setup
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x0f0f0f);
+        scene.fog = new THREE.FogExp2(0x0f0f0f, 0.02);
+
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+        camera.position.set(0, 3, 6);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.2;
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+        // Remove loading text
+        document.getElementById('loading').style.display = 'none';
+
+        // Controls
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.minDistance = 3;
+        controls.maxDistance = 10;
+        controls.maxPolarAngle = Math.PI / 2;
+
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+        scene.add(ambientLight);
+
+        const spotLight = new THREE.SpotLight(0xffaa77, 20);
+        spotLight.position.set(5, 8, 5);
+        spotLight.angle = Math.PI / 6;
+        spotLight.penumbra = 0.5;
+        spotLight.castShadow = true;
+        spotLight.shadow.mapSize.width = 2048;
+        spotLight.shadow.mapSize.height = 2048;
+        spotLight.shadow.bias = -0.0001;
+        scene.add(spotLight);
+
+        const rimLight = new THREE.DirectionalLight(0x4455ff, 2);
+        rimLight.position.set(-5, 3, -5);
+        scene.add(rimLight);
+
+        const fillLight = new THREE.PointLight(0xffddaa, 1, 10);
+        fillLight.position.set(-3, 2, 3);
+        scene.add(fillLight);
+
+        // Texture generation functions
+        function createLeatherTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 512;
+            canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+            
+            // Base color
+            ctx.fillStyle = '#2d1810';
+            ctx.fillRect(0, 0, 512, 512);
+            
+            // Noise for leather texture
+            for (let i = 0; i < 50000; i++) {
+                const x = Math.random() * 512;
+                const y = Math.random() * 512;
+                const alpha = Math.random() * 0.3;
+                ctx.fillStyle = `rgba(0, 0, 0, ${alpha})`;
+                ctx.fillRect(x, y, 2, 2);
+            }
+            
+            // Subtle gradient
+            const gradient = ctx.createLinearGradient(0, 0, 512, 512);
+            gradient.addColorStop(0, 'rgba(139, 69, 19, 0.1)');
+            gradient.addColorStop(1, 'rgba(0, 0, 0, 0.3)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 512, 512);
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.wrapS = THREE.RepeatWrapping;
+            texture.wrapT = THREE.RepeatWrapping;
+            return texture;
+        }
+
+        function createCoverTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 512;
+            canvas.height = 800;
+            const ctx = canvas.getContext('2d');
+            
+            // Rich burgundy background
+            const grad = ctx.createLinearGradient(0, 0, 512, 800);
+            grad.addColorStop(0, '#4a1c1c');
+            grad.addColorStop(0.5, '#2d0f0f');
+            grad.addColorStop(1, '#1a0808');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, 512, 800);
+            
+            // Decorative border
+            ctx.strokeStyle = '#d4af37';
+            ctx.lineWidth = 8;
+            ctx.strokeRect(20, 20, 472, 760);
+            
+            ctx.lineWidth = 3;
+            ctx.strokeRect(35, 35, 442, 730);
+            
+            // Corner ornaments
+            function drawCorner(x, y, rot) {
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(rot);
+                ctx.fillStyle = '#d4af37';
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(30, 5);
+                ctx.lineTo(5, 30);
+                ctx.closePath();
+                ctx.fill();
+                ctx.restore();
+            }
+            
+            drawCorner(25, 25, 0);
+            drawCorner(487, 25, Math.PI/2);
+            drawCorner(487, 775, Math.PI);
+            drawCorner(25, 775, -Math.PI/2);
+            
+            // Title
+            ctx.fillStyle = '#d4af37';
+            ctx.font = 'bold 48px serif';
+            ctx.textAlign = 'center';
+            ctx.shadowColor = 'rgba(0,0,0,0.8)';
+            ctx.shadowBlur = 10;
+            ctx.fillText('THE', 256, 200);
+            ctx.font = 'bold 72px serif';
+            ctx.fillText('ARCHIVE', 256, 280);
+            
+            // Subtitle
+            ctx.font = 'italic 24px serif';
+            ctx.fillStyle = '#aaa';
+            ctx.fillText('Volume I', 256, 320);
+            
+            // Center symbol
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = '#d4af37';
+            ctx.strokeStyle = '#d4af37';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.arc(256, 500, 60, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(256, 440);
+            ctx.lineTo(256, 560);
+            ctx.moveTo(196, 500);
+            ctx.lineTo(316, 500);
+            ctx.stroke();
+            
+            return new THREE.CanvasTexture(canvas);
+        }
+
+        function createPageTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 256;
+            canvas.height = 256;
+            const ctx = canvas.getContext('2d');
+            
+            ctx.fillStyle = '#f5f5dc';
+            ctx.fillRect(0, 0, 256, 256);
+            
+            // Add paper texture noise
+            for (let i = 0; i < 1000; i++) {
+                const x = Math.random() * 256;
+                const y = Math.random() * 256;
+                const alpha = Math.random() * 0.1;
+                ctx.fillStyle = `rgba(139, 119, 101, ${alpha})`;
+                ctx.fillRect(x, y, 1, 1);
+            }
+            
+            // Lines for pages
+            ctx.strokeStyle = 'rgba(139, 119, 101, 0.3)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i < 256; i += 4) {
+                ctx.beginPath();
+                ctx.moveTo(0, i);
+                ctx.lineTo(256, i);
+                ctx.stroke();
+            }
+            
+            return new THREE.CanvasTexture(canvas);
+        }
+
+        // Materials
+        const leatherTexture = createLeatherTexture();
+        const coverTexture = createCoverTexture();
+        const pageTexture = createPageTexture();
+
+        const coverMaterial = new THREE.MeshStandardMaterial({
+            map: coverTexture,
+            roughness: 0.4,
+            metalness: 0.1,
+            bumpMap: leatherTexture,
+            bumpScale: 0.02
+        });
+
+        const spineMaterial = new THREE.MeshStandardMaterial({
+            color: 0x2d1810,
+            roughness: 0.6,
+            metalness: 0.0,
+            bumpMap: leatherTexture,
+            bumpScale: 0.05
+        });
+
+        const pageMaterial = new THREE.MeshStandardMaterial({
+            map: pageTexture,
+            color: 0xfff8dc,
+            roughness: 0.8,
+            metalness: 0.0
+        });
+
+        const goldMaterial = new THREE.MeshStandardMaterial({
+            color: 0xd4af37,
+            roughness: 0.2,
+            metalness: 0.8,
+            emissive: 0x221100,
+            emissiveIntensity: 0.2
+        });
+
+        // Book group
+        const bookGroup = new THREE.Group();
+        scene.add(bookGroup);
+
+        // Book dimensions
+        const width = 2.2;
+        const height = 3.2;
+        const depth = 0.4;
+        const spineWidth = 0.35;
+
+        // Front cover
+        const frontCoverGeo = new THREE.BoxGeometry(width, height, 0.05);
+        const frontCover = new THREE.Mesh(frontCoverGeo, [
+            spineMaterial, // right
+            spineMaterial, // left
+            spineMaterial, // top
+            spineMaterial, // bottom
+            coverMaterial, // front
+            spineMaterial  // back
+        ]);
+        frontCover.position.set(width/2 + spineWidth/2, 0, depth/2);
+        frontCover.castShadow = true;
+        frontCover.receiveShadow = true;
+        bookGroup.add(frontCover);
+
+        // Back cover
+        const backCover = new THREE.Mesh(frontCoverGeo, [
+            spineMaterial,
+            spineMaterial,
+            spineMaterial,
+            spineMaterial,
+            spineMaterial,
+            coverMaterial
+        ]);
+        backCover.position.set(width/2 + spineWidth/2, 0, -depth/2);
+        backCover.castShadow = true;
+        backCover.receiveShadow = true;
+        bookGroup.add(backCover);
+
+        // Spine
+        const spineGeo = new THREE.BoxGeometry(spineWidth, height, depth + 0.1);
+        const spine = new THREE.Mesh(spineGeo, spineMaterial);
+        spine.position.set(0, 0, 0);
+        spine.castShadow = true;
+        spine.receiveShadow = true;
+        bookGroup.add(spine);
+
+        // Pages block
+        const pagesGeo = new THREE.BoxGeometry(width - 0.1, height - 0.2, depth - 0.15);
+        const pages = new THREE.Mesh(pagesGeo, pageMaterial);
+        pages.position.set(width/2 + spineWidth/2 + 0.02, 0, 0);
+        pages.castShadow = true;
+        pages.receiveShadow = true;
+        bookGroup.add(pages);
+
+        // Page details (lines on edges)
+        const pageLinesGeo = new THREE.BoxGeometry(0.02, height - 0.25, depth - 0.2);
+        for (let i = 0; i < 5; i++) {
+            const line = new THREE.Mesh(pageLinesGeo, new THREE.MeshStandardMaterial({
+                color: 0xddd8c0,
+                roughness: 1
+            }));
+            line.position.set(
+                width/2 + spineWidth/2 + 0.05 + (i * 0.15), 
+                0, 
+                0
+            );
+            bookGroup.add(line);
+        }
+
+        // Decorative corners
+        const cornerGeo = new THREE.SphereGeometry(0.08, 16, 16);
+        const corners = [
+            [width + spineWidth/2 - 0.1, height/2 - 0.1, depth/2 - 0.05],
+            [width + spineWidth/2 - 0.1, -height/2 + 0.1, depth/2 - 0.05],
+            [width + spineWidth/2 - 0.1, height/2 - 0.1, -depth/2 + 0.05],
+            [width + spineWidth/2 - 0.1, -height/2 + 0.1, -depth/2 + 0.05]
+        ];
+        
+        corners.forEach(pos => {
+            const corner = new THREE.Mesh(cornerGeo, goldMaterial);
+            corner.position.set(...pos);
+            corner.scale.set(1, 1, 0.5);
+            bookGroup.add(corner);
+        });
+
+        // Bookmark ribbon
+        const ribbonGeo = new THREE.PlaneGeometry(0.15, 1.5);
+        const ribbonMat = new THREE.MeshStandardMaterial({
+            color: 0x8b0000,
+            side: THREE.DoubleSide,
+            roughness: 0.6
+        });
+        const ribbon = new THREE.Mesh(ribbonGeo, ribbonMat);
+        ribbon.position.set(width/2 + spineWidth/2 + 0.3, -height/2 - 0.5, depth/2 + 0.02);
+        ribbon.rotation.x = 0.1;
+        bookGroup.add(ribbon);
+
+        // Ground plane (shadow catcher)
+        const groundGeo = new THREE.PlaneGeometry(20, 20);
+        const groundMat = new THREE.ShadowMaterial({ opacity: 0.3 });
+        const ground = new THREE.Mesh(groundGeo, groundMat);
+        ground.rotation.x = -Math.PI / 2;
+        ground.position.y = -2;
+        ground.receiveShadow = true;
+        scene.add(ground);
+
+        // Floating particles
+        const particlesGeo = new THREE.BufferGeometry();
+        const particlesCount = 200;
+        const posArray = new Float32Array(particlesCount * 3);
+        
+        for (let i = 0; i < particlesCount * 3; i++) {
+            posArray[i] = (Math.random() - 0.5) * 15;
+        }
+        
+        particlesGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        const particlesMat = new THREE.PointsMaterial({
+            size: 0.05,
+            color: 0xd4af37,
+            transparent: true,
+            opacity: 0.6,
+            blending: THREE.AdditiveBlending
+        });
+        const particles = new THREE.Points(particlesGeo, particlesMat);
+        scene.add(particles);
+
+        // Animation variables
+        let mouseX = 0;
+        let mouseY = 0;
+        let targetRotationX = 0;
+        let targetRotationY = 0;
+
+        document.addEventListener('mousemove', (event) => {
+            mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+            mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+        });
+
+        // Initial animation
+        bookGroup.rotation.y = Math.PI;
+        bookGroup.rotation.x = 0.2;
+
+        // Animation loop
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            const time = clock.getElapsedTime();
+            
+            // Floating animation
+            bookGroup.position.y = Math.sin(time * 0.5) * 0.1;
+            
+            // Mouse interaction tilt
+            targetRotationX = mouseY * 0.2;
+            targetRotationY = mouseX * 0.3 + Math.PI / 6;
+            
+            bookGroup.rotation.x += (targetRotationX - bookGroup.rotation.x) * 0.05;
+            bookGroup.rotation.y += (targetRotationY - bookGroup.rotation.y) * 0.05;
+            
+            // Subtle breathing rotation
+            bookGroup.rotation.z = Math.sin(time * 0.3) * 0.02;
+            
+            // Animate particles
+            particles.rotation.y = time * 0.05;
+            particles.position.y = Math.sin(time * 0.2) * 0.2;
+            
+            // Ribbon physics simulation
+            ribbon.rotation.z = Math.sin(time * 2) * 0.05 + mouseX * 0.1;
+            
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        // Handle resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        animate();
+    </script>
+</body>

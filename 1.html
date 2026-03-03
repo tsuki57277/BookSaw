@@ -1,0 +1,1658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BOOKSAW - 3D Collection</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Cormorant+Garamond:wght@300;400;500&family=Josefin+Sans:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --cream: #f0ede6;
+    --dark: #1a1a1a;
+    --muted: #888;
+    --red: #c0392b;
+    --border: #d8d4cc;
+    --gold: #d4af37;
+  }
+
+  body {
+    font-family: 'Josefin Sans', sans-serif;
+    background: var(--cream);
+    color: var(--dark);
+    font-size: 13px;
+    letter-spacing: 0.03em;
+    overflow-x: hidden;
+  }
+
+  /* TOP BAR */
+  .topbar {
+    background: var(--cream);
+    border-bottom: 1px solid var(--border);
+    padding: 8px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+  }
+  .topbar-socials { display: flex; gap: 14px; }
+  .topbar-socials a { color: var(--muted); text-decoration: none; font-size: 12px; }
+  .topbar-socials a:hover { color: var(--dark); }
+  .topbar-right { display: flex; gap: 22px; }
+  .topbar-right a { color: var(--muted); text-decoration: none; font-size: 11px; letter-spacing: 0.1em; }
+  .topbar-right a:hover { color: var(--dark); }
+
+  /* NAV */
+  nav {
+    background: var(--cream);
+    padding: 18px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .logo {
+    font-family: 'Josefin Sans', sans-serif;
+    font-weight: 400;
+    font-size: 22px;
+    letter-spacing: 0.2em;
+    color: var(--dark);
+    text-decoration: none;
+  }
+  .nav-links { display: flex; gap: 32px; list-style: none; }
+  .nav-links a {
+    text-decoration: none;
+    color: var(--dark);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    font-weight: 400;
+  }
+  .nav-links a:hover { color: var(--muted); }
+  .nav-links a.active { border-bottom: 1px solid var(--dark); }
+  .hamburger { font-size: 18px; cursor: pointer; color: var(--dark); }
+
+  /* 3D HERO CAROUSEL SECTION */
+  .hero-carousel-container {
+    position: relative;
+    height: 100vh;
+    min-height: 700px;
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
+    overflow: hidden;
+  }
+
+  .carousel-slide {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.8s ease;
+    pointer-events: none;
+  }
+
+  .carousel-slide.active {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .slide-content {
+    position: absolute;
+    left: 80px;
+    top: 50%;
+    transform: translateY(-50%);
+    max-width: 400px;
+    z-index: 10;
+    color: var(--cream);
+    opacity: 0;
+    transform: translateY(-40%);
+    transition: all 0.8s ease 0.3s;
+  }
+
+  .carousel-slide.active .slide-content {
+    opacity: 1;
+    transform: translateY(-50%);
+  }
+
+  .slide-content h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 56px;
+    line-height: 1.1;
+    font-weight: 400;
+    margin-bottom: 24px;
+    color: var(--cream);
+  }
+
+  .slide-content p {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 16px;
+    color: #aaa;
+    line-height: 1.8;
+    margin-bottom: 35px;
+    font-weight: 300;
+  }
+
+  .btn-gold {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: transparent;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    padding: 14px 28px;
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+
+  .btn-gold:hover {
+    background: var(--gold);
+    color: #1a1a1a;
+  }
+
+  .canvas-wrapper {
+    position: absolute;
+    right: 10%;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 500px;
+    height: 500px;
+    z-index: 5;
+    opacity: 0;
+    transition: opacity 0.8s ease 0.2s;
+  }
+
+  .carousel-slide.active .canvas-wrapper {
+    opacity: 1;
+  }
+
+  .loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--gold);
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 14px;
+    letter-spacing: 0.2em;
+    animation: pulse 2s infinite;
+    z-index: 20;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 1; }
+  }
+
+  /* Carousel Navigation */
+  .carousel-nav {
+    position: absolute;
+    bottom: 100px;
+    left: 80px;
+    display: flex;
+    gap: 20px;
+    z-index: 50;
+  }
+
+  .carousel-arrow {
+    width: 50px;
+    height: 50px;
+    border: 1px solid rgba(212, 175, 55, 0.5);
+    background: transparent;
+    color: var(--gold);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    transition: all 0.3s ease;
+  }
+
+  .carousel-arrow:hover {
+    background: var(--gold);
+    color: #1a1a1a;
+    border-color: var(--gold);
+  }
+
+  .carousel-dots {
+    position: absolute;
+    bottom: 115px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 12px;
+    z-index: 50;
+  }
+
+  .carousel-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: transparent;
+    border: 1px solid rgba(212, 175, 55, 0.5);
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .carousel-dot.active {
+    background: var(--gold);
+    border-color: var(--gold);
+    transform: scale(1.2);
+  }
+
+  .carousel-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    background: var(--gold);
+    transition: width 0.1s linear;
+    z-index: 50;
+  }
+
+  .slide-counter {
+    position: absolute;
+    bottom: 115px;
+    right: 80px;
+    color: var(--gold);
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    z-index: 50;
+  }
+
+  .slide-counter .current {
+    font-size: 32px;
+    font-weight: 600;
+  }
+
+  .slide-counter .total {
+    opacity: 0.5;
+  }
+
+  .interaction-hint {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #666;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    z-index: 10;
+  }
+
+  /* BOOK DETAILS SECTION */
+  .book-details {
+    padding: 100px 80px;
+    background: var(--cream);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+  }
+
+  .details-content h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 42px;
+    font-weight: 400;
+    margin-bottom: 30px;
+    color: var(--dark);
+  }
+
+  .details-content .meta {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 30px;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+  }
+
+  .details-content .meta span {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .details-content p {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 16px;
+    line-height: 1.8;
+    color: #555;
+    margin-bottom: 25px;
+  }
+
+  .price-tag {
+    font-family: 'Playfair Display', serif;
+    font-size: 36px;
+    color: var(--dark);
+    margin: 30px 0;
+  }
+
+  .price-tag span {
+    font-size: 16px;
+    color: var(--muted);
+    text-decoration: line-through;
+    margin-left: 15px;
+  }
+
+  .actions {
+    display: flex;
+    gap: 20px;
+    margin-top: 40px;
+  }
+
+  .btn-dark {
+    background: var(--dark);
+    color: var(--cream);
+    border: none;
+    padding: 16px 40px;
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .btn-dark:hover {
+    background: #333;
+    transform: translateY(-2px);
+  }
+
+  .btn-outline-dark {
+    background: transparent;
+    border: 1px solid var(--dark);
+    color: var(--dark);
+    padding: 16px 40px;
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .btn-outline-dark:hover {
+    background: var(--dark);
+    color: var(--cream);
+  }
+
+  .specs {
+    background: #e8e4dc;
+    padding: 40px;
+    border-radius: 4px;
+  }
+
+  .specs h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 24px;
+    margin-bottom: 25px;
+    font-weight: 400;
+  }
+
+  .spec-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+
+  .spec-row:last-child { border-bottom: none; }
+  .spec-row .label { color: var(--muted); }
+  .spec-row .value { color: var(--dark); font-weight: 500; }
+
+  /* RELATED BOOKS CAROUSEL SECTION */
+  .related-carousel-section {
+    padding: 80px 0;
+    background: #e8e4dc;
+    overflow: hidden;
+  }
+
+  .related-header {
+    padding: 0 80px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 50px;
+  }
+
+  .related-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 32px;
+    font-weight: 400;
+  }
+
+  .related-nav {
+    display: flex;
+    gap: 15px;
+  }
+
+  .related-nav-btn {
+    width: 50px;
+    height: 50px;
+    border: 1px solid var(--dark);
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    transition: all 0.3s;
+    color: var(--dark);
+  }
+
+  .related-nav-btn:hover {
+    background: var(--dark);
+    color: var(--cream);
+  }
+
+  .related-nav-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  .related-nav-btn:disabled:hover {
+    background: transparent;
+    color: var(--dark);
+  }
+
+  .related-carousel-wrapper {
+    position: relative;
+    padding: 0 80px;
+  }
+
+  .related-carousel-track-container {
+    overflow: hidden;
+    margin: 0 -15px;
+  }
+
+  .related-carousel-track {
+    display: flex;
+    transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    will-change: transform;
+  }
+
+  .related-card {
+    flex: 0 0 calc(25% - 30px);
+    margin: 0 15px;
+    background: var(--cream);
+    padding: 25px;
+    transition: transform 0.3s, box-shadow 0.3s;
+    cursor: pointer;
+  }
+
+  .related-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+  }
+
+  .related-cover {
+    aspect-ratio: 2/3;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+    background: #ddd;
+  }
+
+  .related-cover::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, var(--cover-color-1, #2c1810) 0%, var(--cover-color-2, #5c2e1a) 100%);
+    z-index: 1;
+  }
+
+  .related-cover-content {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-family: 'Cormorant Garamond', serif;
+    text-align: center;
+    padding: 20px;
+    z-index: 2;
+  }
+
+  .related-cover-title {
+    font-size: 15px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    line-height: 1.3;
+  }
+
+  .related-cover-author {
+    font-size: 11px;
+    opacity: 0.8;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  .related-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: var(--dark);
+  }
+
+  .related-author {
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    margin-bottom: 12px;
+  }
+
+  .related-price {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    color: var(--dark);
+    font-weight: 600;
+  }
+
+  .related-dots {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 40px;
+    padding: 0 80px;
+  }
+
+  .related-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--dark);
+    opacity: 0.2;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .related-dot.active {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+
+  .view-all-link {
+    text-align: center;
+    margin-top: 30px;
+  }
+
+  .view-all-link a {
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    color: var(--dark);
+    text-decoration: none;
+    border-bottom: 1px solid var(--dark);
+    padding-bottom: 3px;
+    transition: all 0.3s;
+  }
+
+  .view-all-link a:hover {
+    color: var(--muted);
+    border-color: var(--muted);
+  }
+
+  /* FOOTER */
+  footer {
+    background: var(--dark);
+    color: var(--cream);
+    padding: 60px 80px 30px;
+  }
+
+  .footer-content {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 60px;
+    margin-bottom: 50px;
+  }
+
+  .footer-brand h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    margin-bottom: 20px;
+    font-weight: 400;
+  }
+
+  .footer-brand p {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 15px;
+    line-height: 1.7;
+    color: #999;
+    margin-bottom: 25px;
+  }
+
+  .footer-col h4 {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    margin-bottom: 25px;
+    font-weight: 400;
+  }
+
+  .footer-col ul {
+    list-style: none;
+  }
+
+  .footer-col li {
+    margin-bottom: 12px;
+  }
+
+  .footer-col a {
+    color: #999;
+    text-decoration: none;
+    font-size: 13px;
+    transition: color 0.3s;
+  }
+
+  .footer-col a:hover { color: var(--cream); }
+
+  .footer-bottom {
+    border-top: 1px solid #333;
+    padding-top: 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: #666;
+  }
+
+  .back-to-top {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 50px;
+    height: 50px;
+    background: var(--dark);
+    color: var(--cream);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    opacity: 0;
+    transition: all 0.3s;
+    z-index: 100;
+  }
+
+  .back-to-top.visible {
+    opacity: 1;
+  }
+
+  .back-to-top:hover {
+    background: var(--gold);
+    color: var(--dark);
+    border-color: var(--gold);
+  }
+
+  /* Responsive */
+  @media (max-width: 1024px) {
+    .slide-content { left: 40px; max-width: 350px; }
+    .slide-content h1 { font-size: 42px; }
+    .canvas-wrapper { width: 400px; height: 400px; right: 5%; }
+    .book-details { grid-template-columns: 1fr; padding: 60px 40px; }
+    .related-card { flex: 0 0 calc(33.333% - 30px); }
+    .footer-content { grid-template-columns: 1fr 1fr; }
+    .related-header, .related-carousel-wrapper { padding-left: 40px; padding-right: 40px; }
+  }
+
+  @media (max-width: 768px) {
+    .hero-carousel-container { height: auto; min-height: 100vh; }
+    .carousel-slide { flex-direction: column; padding: 100px 20px 60px; }
+    .slide-content { position: relative; left: 0; transform: none; text-align: center; margin-bottom: 40px; max-width: 100%; }
+    .carousel-slide.active .slide-content { transform: none; }
+    .canvas-wrapper { position: relative; right: 0; transform: none; width: 100%; height: 400px; }
+    .carousel-nav { left: 20px; bottom: 40px; }
+    .carousel-dots { bottom: 55px; }
+    .slide-counter { right: 20px; bottom: 55px; }
+    .nav-links { display: none; }
+    .related-card { flex: 0 0 calc(50% - 30px); }
+    .footer-content { grid-template-columns: 1fr; }
+    .actions { flex-direction: column; }
+    .related-header, .related-carousel-wrapper { padding-left: 20px; padding-right: 20px; }
+  }
+
+  @media (max-width: 480px) {
+    .related-card { flex: 0 0 calc(100% - 30px); }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-socials">
+    <a href="test.html">BookSAW</a>
+  </div>
+  <div class="topbar-right">
+    <a href="#">⊙ ACCOUNT</a>
+    <a href="#">⊡ CART (0)</a>
+    <a href="#">⌕ SEARCH</a>
+    <a href="#">⊞</a>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <a href="test.html" class="logo">BOOKSAW</a>
+  <ul class="nav-links">
+    <li><a href="index.html">HOME</a></li>
+    <li><a href="#" class="active">3D COLLECTION</a></li>
+    <li><a href="#">ABOUT</a></li>
+    <li><a href="#">SHOP</a></li>
+    <li><a href="#">ARTICLES</a></li>
+    <li><a href="#">CONTACT</a></li>
+  </ul>
+  <div class="hamburger">≡</div>
+</nav>
+
+<!-- 3D HERO CAROUSEL -->
+<section class="hero-carousel-container" id="heroCarousel">
+  <div class="loading" id="loading">Loading 3D Experience...</div>
+  
+  <!-- Slide 1: The Archive -->
+  <div class="carousel-slide active" data-book="archive">
+    <div class="slide-content">
+      <h1>The Archive<br>Volume I</h1>
+      <p>Experience our rare collection in stunning three dimensions. This leather-bound masterpiece features gold leaf accents and centuries of stories waiting to be discovered.</p>
+      <a href="#details" class="btn-gold">EXPLORE DETAILS →</a>
+    </div>
+    <div class="canvas-wrapper" id="canvas-1"></div>
+  </div>
+
+  <!-- Slide 2: Crimson Chronicles -->
+  <div class="carousel-slide" data-book="crimson">
+    <div class="slide-content">
+      <h1>Crimson<br>Chronicles</h1>
+      <p>A breathtaking collection of historical manuscripts bound in deep crimson leather. Each page whispers secrets from ages past, preserved in stunning detail.</p>
+      <a href="#details" class="btn-gold">EXPLORE DETAILS →</a>
+    </div>
+    <div class="canvas-wrapper" id="canvas-2"></div>
+  </div>
+
+  <!-- Slide 3: Emerald Tales -->
+  <div class="carousel-slide" data-book="emerald">
+    <div class="slide-content">
+      <h1>Emerald<br>Tales</h1>
+      <p>Discover ancient folklore and mystical stories bound in emerald green leather with silver filigree. A treasure for collectors and dreamers alike.</p>
+      <a href="#details" class="btn-gold">EXPLORE DETAILS →</a>
+    </div>
+    <div class="canvas-wrapper" id="canvas-3"></div>
+  </div>
+
+  <!-- Slide 4: Golden Ages -->
+  <div class="carousel-slide" data-book="golden">
+    <div class="slide-content">
+      <h1>Golden<br>Ages</h1>
+      <p>The Renaissance reborn in leather and gold. This exquisite volume captures the essence of humanity's greatest artistic flourishing.</p>
+      <a href="#details" class="btn-gold">EXPLORE DETAILS →</a>
+    </div>
+    <div class="canvas-wrapper" id="canvas-4"></div>
+  </div>
+
+  <!-- Carousel Controls -->
+  <div class="carousel-nav">
+    <button class="carousel-arrow" id="prevSlide">←</button>
+    <button class="carousel-arrow" id="nextSlide">→</button>
+  </div>
+
+  <div class="carousel-dots" id="carouselDots"></div>
+  
+  <div class="slide-counter">
+    <span class="current" id="currentSlide">01</span>
+    <span class="total">/ 04</span>
+  </div>
+
+  <div class="carousel-progress" id="progressBar"></div>
+  
+  <div class="interaction-hint">Drag to rotate • Scroll to zoom • Hover to interact</div>
+</section>
+
+<!-- BOOK DETAILS -->
+<section class="book-details" id="details">
+  <div class="details-content">
+    <h2>The Archive: Volume I</h2>
+    <div class="meta">
+      <span>✦ LIMITED EDITION</span>
+      <span>◈ 1847 PAGES</span>
+      <span>◉ HANDCRAFTED</span>
+    </div>
+    <p>A masterpiece of bookbinding artistry, featuring genuine leather binding with 22-karat gold leaf embossing. Each volume is individually numbered and includes exclusive access to our digital archive.</p>
+    <p>The Archive represents the pinnacle of literary preservation, combining centuries-old binding techniques with modern conservation technology.</p>
+    
+    <div class="price-tag">$ 450.00 <span>$ 599.00</span></div>
+    
+    <div class="actions">
+      <button class="btn-dark">ADD TO CART</button>
+      <button class="btn-outline-dark">♡ WISHLIST</button>
+    </div>
+  </div>
+  
+  <div class="specs">
+    <h3>Specifications</h3>
+    <div class="spec-row">
+      <span class="label">Binding</span>
+      <span class="value">Full Leather, Hand-stitched</span>
+    </div>
+    <div class="spec-row">
+      <span class="label">Dimensions</span>
+      <span class="value">12 × 9 × 3.5 inches</span>
+    </div>
+    <div class="spec-row">
+      <span class="label">Weight</span>
+      <span class="value">4.2 kg</span>
+    </div>
+    <div class="spec-row">
+      <span class="label">Pages</span>
+      <span class="value">1,847 (Acid-free)</span>
+    </div>
+    <div class="spec-row">
+      <span class="label">Edition</span>
+      <span class="value">Limited to 500 copies</span>
+    </div>
+    <div class="spec-row">
+      <span class="label">Origin</span>
+      <span class="value">Florence, Italy</span>
+    </div>
+  </div>
+</section>
+
+<!-- RELATED BOOKS CAROUSEL -->
+<section class="related-carousel-section">
+  <div class="related-header">
+    <h2>From the Collection</h2>
+    <div class="related-nav">
+      <button class="related-nav-btn" id="relatedPrev">←</button>
+      <button class="related-nav-btn" id="relatedNext">→</button>
+    </div>
+  </div>
+  
+  <div class="related-carousel-wrapper">
+    <div class="related-carousel-track-container">
+      <div class="related-carousel-track" id="relatedTrack">
+        
+        <div class="related-card" style="--cover-color-1: #2c1810; --cover-color-2: #5c2e1a;">
+          <div class="related-cover">
+            <div class="related-cover-content">
+              <div class="related-cover-title">Chronicle of A<br>Blood Merchant</div>
+              <div class="related-cover-author">Yu Hua</div>
+            </div>
+          </div>
+          <div class="related-title">Chronicle Of A Blood Merchant</div>
+          <div class="related-author">Historical Fiction</div>
+          <div class="related-price">$21.60</div>
+        </div>
+
+        <div class="related-card" style="--cover-color-1: #8b2c2c; --cover-color-2: #c0392b;">
+          <div class="related-cover">
+            <div class="related-cover-content">
+              <div class="related-cover-title">Red<br>Sorghum</div>
+              <div class="related-cover-author">Mo Yan</div>
+            </div>
+          </div>
+          <div class="related-title">Red Sorghum</div>
+          <div class="related-author">Magical Realism</div>
+          <div class="related-price">$20.30</div>
+        </div>
+
+        <div class="related-card" style="--cover-color-1: #1a6b5a; --cover-color-2: #27ae60;">
+          <div class="related-cover">
+            <div class="related-cover-content">
+              <div class="related-cover-title">The Day The<br>Sun Died</div>
+              <div class="related-cover-author">Yan Lianke</div>
+            </div>
+          </div>
+          <div class="related-title">The Day The Sun Died</div>
+          <div class="related-author">Satire</div>
+          <div class="related-price">$11.20</div>
+        </div>
+
+        <div class="related-card" style="--cover-color-1: #7f5c3e; --cover-color-2: #c5a882;">
+          <div class="related-cover">
+            <div class="related-cover-content">
+              <div class="related-cover-title">Love In A<br>Fallen City</div>
+              <div class="related-cover-author">Eileen Chang</div>
+            </div>
+          </div>
+          <div class="related-title">Love In A Fallen City</div>
+          <div class="related-author">Romance</div>
+          <div class="related-price">$19.20</div>
+        </div>
+
+        <div class="related-card" style="--cover-color-1: #1a2a4a; --cover-color-2: #2e4a7a;">
+          <div class="related-cover">
+            <div class="related-cover-content">
+              <div class="related-cover-title">Waiting</div>
+              <div class="related-cover-author">Ha Jin</div>
+            </div>
+          </div>
+          <div class="related-title">Waiting</div>
+          <div class="related-author">Literary Fiction</div>
+          <div class="related-price">$16.50</div>
+        </div>
+
+        <div class="related-card" style="--cover-color-1: #3d2a1a; --cover-color-2: #8b6040;">
+          <div class="related-cover">
+            <div class="related-cover-content">
+              <div class="related-cover-title">Dream of the<br>Red Chamber</div>
+              <div class="related-cover-author">Cao Xueqin</div>
+            </div>
+          </div>
+          <div class="related-title">Dream of the Red Chamber</div>
+          <div class="related-author">Classic Literature</div>
+          <div class="related-price">$24.00</div>
+        </div>
+
+        <div class="related-card" style="--cover-color-1: #1a3a2a; --cover-color-2: #2d6a4f;">
+          <div class="related-cover">
+            <div class="related-cover-content">
+              <div class="related-cover-title">Soul<br>Mountain</div>
+              <div class="related-cover-author">Gao Xingjian</div>
+            </div>
+          </div>
+          <div class="related-title">Soul Mountain</div>
+          <div class="related-author">Philosophical Fiction</div>
+          <div class="related-price">$18.90</div>
+        </div>
+
+        <div class="related-card" style="--cover-color-1: #4a1a2a; --cover-color-2: #9b2335;">
+          <div class="related-cover">
+            <div class="related-cover-content">
+              <div class="related-cover-title">The Garlic<br>Ballads</div>
+              <div class="related-cover-author">Mo Yan</div>
+            </div>
+          </div>
+          <div class="related-title">The Garlic Ballads</div>
+          <div class="related-author">Rural Drama</div>
+          <div class="related-price">$15.75</div>
+        </div>
+
+        <div class="related-card" style="--cover-color-1: #2a1a4a; --cover-color-2: #5a3a8a;">
+          <div class="related-cover">
+            <div class="related-cover-content">
+              <div class="related-cover-title">The Three-Body<br>Problem</div>
+              <div class="related-cover-author">Cixin Liu</div>
+            </div>
+          </div>
+          <div class="related-title">The Three-Body Problem</div>
+          <div class="related-author">Science Fiction</div>
+          <div class="related-price">$22.50</div>
+        </div>
+
+        <div class="related-card" style="--cover-color-1: #4a3a1a; --cover-color-2: #8a6a3a;">
+          <div class="related-cover">
+            <div class="related-cover-content">
+              <div class="related-cover-title">Wild<br>Swans</div>
+              <div class="related-cover-author">Jung Chang</div>
+            </div>
+          </div>
+          <div class="related-title">Wild Swans</div>
+          <div class="related-author">Biography</div>
+          <div class="related-price">$19.95</div>
+        </div>
+
+        <div class="related-card" style="--cover-color-1: #1a4a5a; --cover-color-2: #3a8aa0;">
+          <div class="related-cover">
+            <div class="related-cover-content">
+              <div class="related-cover-title">Balzac and<br>the Little...</div>
+              <div class="related-cover-author">Dai Sijie</div>
+            </div>
+          </div>
+          <div class="related-title">Balzac and the Little Chinese Seamstress</div>
+          <div class="related-author">Historical Fiction</div>
+          <div class="related-price">$14.30</div>
+        </div>
+
+        <div class="related-card" style="--cover-color-1: #5a1a3a; --cover-color-2: #9a3a6a;">
+          <div class="related-cover">
+            <div class="related-cover-content">
+              <div class="related-cover-title">The Vagrants</div>
+              <div class="related-cover-author">Yiyun Li</div>
+            </div>
+          </div>
+          <div class="related-title">The Vagrants</div>
+          <div class="related-author">Contemporary Fiction</div>
+          <div class="related-price">$17.80</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="related-dots" id="relatedDots"></div>
+  
+  <div class="view-all-link">
+    <a href="#">View All Products →</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-content">
+    <div class="footer-brand">
+      <h3>BOOKSAW</h3>
+      <p>Curating the finest literary works since 1987. We believe in the power of physical books to transport, transform, and transcend.</p>
+    </div>
+    <div class="footer-col">
+      <h4>EXPLORE</h4>
+      <ul>
+        <li><a href="#">New Arrivals</a></li>
+        <li><a href="#">Featured</a></li>
+        <li><a href="#">3D Collection</a></li>
+        <li><a href="#">Rare Books</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>CUSTOMER</h4>
+      <ul>
+        <li><a href="#">My Account</a></li>
+        <li><a href="#">Order Status</a></li>
+        <li><a href="#">Wishlist</a></li>
+        <li><a href="#">Newsletter</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>CONNECT</h4>
+      <ul>
+        <li><a href="#">Instagram</a></li>
+        <li><a href="#">Twitter</a></li>
+        <li><a href="#">Pinterest</a></li>
+        <li><a href="#">Contact Us</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2024 BOOKSAW. All rights reserved.</span>
+    <span>Crafted with ♥ for book lovers</span>
+  </div>
+</footer>
+
+<button class="back-to-top" id="backToTop">↑</button>
+
+<script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+</script>
+
+<script type="module">
+  import * as THREE from 'three';
+  import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+  // Book configurations
+  const bookConfigs = {
+    archive: {
+      coverColor: '#4a1c1c',
+      spineColor: '#2d1810',
+      title: 'THE ARCHIVE',
+      subtitle: 'Volume I',
+      accent: '#d4af37',
+      ribbon: '#8b0000'
+    },
+    crimson: {
+      coverColor: '#8b0000',
+      spineColor: '#4a0000',
+      title: 'CRIMSON',
+      subtitle: 'Chronicles',
+      accent: '#ffd700',
+      ribbon: '#4a0000'
+    },
+    emerald: {
+      coverColor: '#0d4a0d',
+      spineColor: '#052805',
+      title: 'EMERALD',
+      subtitle: 'Tales',
+      accent: '#c0c0c0',
+      ribbon: '#052805'
+    },
+    golden: {
+      coverColor: '#8b6914',
+      spineColor: '#5a4510',
+      title: 'GOLDEN',
+      subtitle: 'Ages',
+      accent: '#ffffff',
+      ribbon: '#5a4510'
+    }
+  };
+
+  // Create book function
+  function createBook(config) {
+    const bookGroup = new THREE.Group();
+    
+    const width = 2.2;
+    const height = 3.2;
+    const depth = 0.4;
+    const spineWidth = 0.35;
+
+    // Leather texture
+    function createLeatherTexture() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 512;
+      canvas.height = 512;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = config.spineColor;
+      ctx.fillRect(0, 0, 512, 512);
+      for (let i = 0; i < 50000; i++) {
+        const x = Math.random() * 512;
+        const y = Math.random() * 512;
+        const alpha = Math.random() * 0.3;
+        ctx.fillStyle = `rgba(0, 0, 0, ${alpha})`;
+        ctx.fillRect(x, y, 2, 2);
+      }
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.wrapS = THREE.RepeatWrapping;
+      texture.wrapT = THREE.RepeatWrapping;
+      return texture;
+    }
+
+    // Cover texture
+    function createCoverTexture() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 512;
+      canvas.height = 800;
+      const ctx = canvas.getContext('2d');
+      const grad = ctx.createLinearGradient(0, 0, 512, 800);
+      grad.addColorStop(0, config.coverColor);
+      grad.addColorStop(0.5, config.spineColor);
+      grad.addColorStop(1, '#1a0808');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 512, 800);
+      
+      // Border
+      ctx.strokeStyle = config.accent;
+      ctx.lineWidth = 8;
+      ctx.strokeRect(20, 20, 472, 760);
+      ctx.lineWidth = 3;
+      ctx.strokeRect(35, 35, 442, 730);
+      
+      // Title
+      ctx.fillStyle = config.accent;
+      ctx.font = 'bold 48px serif';
+      ctx.textAlign = 'center';
+      ctx.shadowColor = 'rgba(0,0,0,0.8)';
+      ctx.shadowBlur = 10;
+      ctx.fillText(config.title.split(' ')[0], 256, 200);
+      ctx.font = 'bold 72px serif';
+      ctx.fillText(config.title.split(' ')[1] || '', 256, 280);
+      ctx.font = 'italic 24px serif';
+      ctx.fillStyle = '#aaa';
+      ctx.fillText(config.subtitle, 256, 320);
+      
+      // Symbol
+      ctx.shadowBlur = 20;
+      ctx.shadowColor = config.accent;
+      ctx.strokeStyle = config.accent;
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.arc(256, 500, 60, 0, Math.PI * 2);
+      ctx.stroke();
+      
+      return new THREE.CanvasTexture(canvas);
+    }
+
+    function createPageTexture() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 256;
+      canvas.height = 256;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#f5f5dc';
+      ctx.fillRect(0, 0, 256, 256);
+      for (let i = 0; i < 1000; i++) {
+        const x = Math.random() * 256;
+        const y = Math.random() * 256;
+        const alpha = Math.random() * 0.1;
+        ctx.fillStyle = `rgba(139, 119, 101, ${alpha})`;
+        ctx.fillRect(x, y, 1, 1);
+      }
+      return new THREE.CanvasTexture(canvas);
+    }
+
+    const leatherTexture = createLeatherTexture();
+    const coverTexture = createCoverTexture();
+    const pageTexture = createPageTexture();
+
+    const coverMaterial = new THREE.MeshStandardMaterial({
+      map: coverTexture,
+      roughness: 0.4,
+      metalness: 0.1,
+      bumpMap: leatherTexture,
+      bumpScale: 0.02
+    });
+
+    const spineMaterial = new THREE.MeshStandardMaterial({
+      color: new THREE.Color(config.spineColor),
+      roughness: 0.6,
+      metalness: 0.0,
+      bumpMap: leatherTexture,
+      bumpScale: 0.05
+    });
+
+    const pageMaterial = new THREE.MeshStandardMaterial({
+      map: pageTexture,
+      color: 0xfff8dc,
+      roughness: 0.8,
+      metalness: 0.0
+    });
+
+    const goldMaterial = new THREE.MeshStandardMaterial({
+      color: new THREE.Color(config.accent),
+      roughness: 0.2,
+      metalness: 0.8,
+      emissive: new THREE.Color(config.accent),
+      emissiveIntensity: 0.2
+    });
+
+    // Front cover
+    const frontCoverGeo = new THREE.BoxGeometry(width, height, 0.05);
+    const frontCover = new THREE.Mesh(frontCoverGeo, [
+      spineMaterial, spineMaterial, spineMaterial, spineMaterial,
+      coverMaterial, spineMaterial
+    ]);
+    frontCover.position.set(width/2 + spineWidth/2, 0, depth/2);
+    frontCover.castShadow = true;
+    frontCover.receiveShadow = true;
+    bookGroup.add(frontCover);
+
+    // Back cover
+    const backCover = new THREE.Mesh(frontCoverGeo, [
+      spineMaterial, spineMaterial, spineMaterial, spineMaterial,
+      spineMaterial, coverMaterial
+    ]);
+    backCover.position.set(width/2 + spineWidth/2, 0, -depth/2);
+    backCover.castShadow = true;
+    backCover.receiveShadow = true;
+    bookGroup.add(backCover);
+
+    // Spine
+    const spineGeo = new THREE.BoxGeometry(spineWidth, height, depth + 0.1);
+    const spine = new THREE.Mesh(spineGeo, spineMaterial);
+    spine.position.set(0, 0, 0);
+    spine.castShadow = true;
+    spine.receiveShadow = true;
+    bookGroup.add(spine);
+
+    // Pages
+    const pagesGeo = new THREE.BoxGeometry(width - 0.1, height - 0.2, depth - 0.15);
+    const pages = new THREE.Mesh(pagesGeo, pageMaterial);
+    pages.position.set(width/2 + spineWidth/2 + 0.02, 0, 0);
+    pages.castShadow = true;
+    pages.receiveShadow = true;
+    bookGroup.add(pages);
+
+    // Gold corners
+    const cornerGeo = new THREE.SphereGeometry(0.08, 16, 16);
+    const corners = [
+      [width + spineWidth/2 - 0.1, height/2 - 0.1, depth/2 - 0.05],
+      [width + spineWidth/2 - 0.1, -height/2 + 0.1, depth/2 - 0.05],
+      [width + spineWidth/2 - 0.1, height/2 - 0.1, -depth/2 + 0.05],
+      [width + spineWidth/2 - 0.1, -height/2 + 0.1, -depth/2 + 0.05]
+    ];
+    
+    corners.forEach(pos => {
+      const corner = new THREE.Mesh(cornerGeo, goldMaterial);
+      corner.position.set(...pos);
+      corner.scale.set(1, 1, 0.5);
+      bookGroup.add(corner);
+    });
+
+    // Ribbon
+    const ribbonGeo = new THREE.PlaneGeometry(0.15, 1.5);
+    const ribbonMat = new THREE.MeshStandardMaterial({
+      color: new THREE.Color(config.ribbon),
+      side: THREE.DoubleSide,
+      roughness: 0.6
+    });
+    const ribbon = new THREE.Mesh(ribbonGeo, ribbonMat);
+    ribbon.position.set(width/2 + spineWidth/2 + 0.3, -height/2 - 0.5, depth/2 + 0.02);
+    ribbon.rotation.x = 0.1;
+    bookGroup.add(ribbon);
+
+    return { mesh: bookGroup, ribbon: ribbon };
+  }
+
+  // Initialize scenes for each slide
+  const slides = document.querySelectorAll('.carousel-slide');
+  const scenes = [];
+  let currentSlide = 0;
+  let isAnimating = false;
+
+  // Setup Three.js for each canvas
+  slides.forEach((slide, index) => {
+    const container = slide.querySelector('.canvas-wrapper');
+    const bookType = slide.dataset.book;
+    
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x1a1a1a);
+    scene.fog = new THREE.FogExp2(0x1a1a1a, 0.02);
+
+    const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+    camera.position.set(0, 2, 6);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.2;
+    container.appendChild(renderer.domElement);
+
+    // Lighting
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+    scene.add(ambientLight);
+
+    const spotLight = new THREE.SpotLight(0xffaa77, 20);
+    spotLight.position.set(5, 8, 5);
+    spotLight.angle = Math.PI / 6;
+    spotLight.penumbra = 0.5;
+    spotLight.castShadow = true;
+    spotLight.shadow.mapSize.width = 2048;
+    spotLight.shadow.mapSize.height = 2048;
+    scene.add(spotLight);
+
+    const rimLight = new THREE.DirectionalLight(0x4455ff, 2);
+    rimLight.position.set(-5, 3, -5);
+    scene.add(rimLight);
+
+    const fillLight = new THREE.PointLight(0xd4af37, 0.5, 10);
+    fillLight.position.set(-3, 2, 3);
+    scene.add(fillLight);
+
+    // Create book
+    const bookData = createBook(bookConfigs[bookType]);
+    const bookGroup = bookData.mesh;
+    scene.add(bookGroup);
+
+    // Particles
+    const particlesGeo = new THREE.BufferGeometry();
+    const particlesCount = 100;
+    const posArray = new Float32Array(particlesCount * 3);
+    
+    for (let i = 0; i < particlesCount * 3; i++) {
+      posArray[i] = (Math.random() - 0.5) * 12;
+    }
+    
+    particlesGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+    const particlesMat = new THREE.PointsMaterial({
+      size: 0.05,
+      color: 0xd4af37,
+      transparent: true,
+      opacity: 0.6,
+      blending: THREE.AdditiveBlending
+    });
+    const particles = new THREE.Points(particlesGeo, particlesMat);
+    scene.add(particles);
+
+    // Controls
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.minDistance = 3;
+    controls.maxDistance = 10;
+    controls.maxPolarAngle = Math.PI / 2;
+    controls.autoRotate = true;
+    controls.autoRotateSpeed = 0.5;
+
+    // Initial rotation
+    bookGroup.rotation.y = Math.PI;
+    bookGroup.rotation.x = 0.2;
+
+    scenes.push({
+      scene,
+      camera,
+      renderer,
+      bookGroup,
+      ribbon: bookData.ribbon,
+      particles,
+      controls,
+      container
+    });
+  });
+
+  // Remove loading text
+  document.getElementById('loading').style.display = 'none';
+
+  // Hero Carousel functionality
+  const dotsContainer = document.getElementById('carouselDots');
+  const currentSlideEl = document.getElementById('currentSlide');
+  const progressBar = document.getElementById('progressBar');
+  const totalSlides = slides.length;
+
+  // Create dots
+  for (let i = 0; i < totalSlides; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'carousel-dot' + (i === 0 ? ' active' : '');
+    dot.addEventListener('click', () => goToSlide(i));
+    dotsContainer.appendChild(dot);
+  }
+
+  function goToSlide(index) {
+    if (isAnimating || index === currentSlide) return;
+    isAnimating = true;
+
+    slides[currentSlide].classList.remove('active');
+    dotsContainer.children[currentSlide].classList.remove('active');
+
+    currentSlide = index;
+
+    slides[currentSlide].classList.add('active');
+    dotsContainer.children[currentSlide].classList.add('active');
+    currentSlideEl.textContent = String(currentSlide + 1).padStart(2, '0');
+
+    setTimeout(() => {
+      isAnimating = false;
+    }, 800);
+  }
+
+  function nextSlide() {
+    const next = (currentSlide + 1) % totalSlides;
+    goToSlide(next);
+  }
+
+  function prevSlide() {
+    const prev = (currentSlide - 1 + totalSlides) % totalSlides;
+    goToSlide(prev);
+  }
+
+  document.getElementById('nextSlide').addEventListener('click', nextSlide);
+  document.getElementById('prevSlide').addEventListener('click', prevSlide);
+
+  // Keyboard navigation
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight') nextSlide();
+    if (e.key === 'ArrowLeft') prevSlide();
+  });
+
+  // Auto-advance
+  let autoAdvanceInterval;
+  let progressInterval;
+  const slideDuration = 8000;
+
+  function startAutoAdvance() {
+    let progress = 0;
+    progressBar.style.width = '0%';
+    
+    clearInterval(progressInterval);
+    progressInterval = setInterval(() => {
+      progress += 100 / (slideDuration / 100);
+      progressBar.style.width = progress + '%';
+    }, 100);
+
+    clearInterval(autoAdvanceInterval);
+    autoAdvanceInterval = setInterval(() => {
+      nextSlide();
+    }, slideDuration);
+  }
+
+  function stopAutoAdvance() {
+    clearInterval(autoAdvanceInterval);
+    clearInterval(progressInterval);
+    progressBar.style.width = '0%';
+  }
+
+  // Pause on hover
+  const heroContainer = document.getElementById('heroCarousel');
+  heroContainer.addEventListener('mouseenter', stopAutoAdvance);
+  heroContainer.addEventListener('mouseleave', startAutoAdvance);
+
+  startAutoAdvance();
+
+  // RELATED BOOKS CAROUSEL
+  const relatedTrack = document.getElementById('relatedTrack');
+  const relatedPrev = document.getElementById('relatedPrev');
+  const relatedNext = document.getElementById('relatedNext');
+  const relatedDots = document.getElementById('relatedDots');
+  const relatedCards = relatedTrack.querySelectorAll('.related-card');
+  
+  let relatedCurrentPage = 0;
+  const cardsPerView = 4;
+  const totalRelatedPages = Math.ceil(relatedCards.length / cardsPerView);
+
+  // Create dots for related carousel
+  for (let i = 0; i < totalRelatedPages; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'related-dot' + (i === 0 ? ' active' : '');
+    dot.addEventListener('click', () => goToRelatedPage(i));
+    relatedDots.appendChild(dot);
+  }
+
+  function updateRelatedCarousel() {
+    const cardWidth = relatedCards[0].offsetWidth + 30; // card width + margin
+    const offset = relatedCurrentPage * cardsPerView * cardWidth;
+    relatedTrack.style.transform = `translateX(-${offset}px)`;
+    
+    // Update dots
+    relatedDots.querySelectorAll('.related-dot').forEach((dot, i) => {
+      dot.classList.toggle('active', i === relatedCurrentPage);
+    });
+    
+    // Update buttons
+    relatedPrev.disabled = relatedCurrentPage === 0;
+    relatedNext.disabled = relatedCurrentPage >= totalRelatedPages - 1;
+  }
+
+  function goToRelatedPage(page) {
+    relatedCurrentPage = page;
+    updateRelatedCarousel();
+  }
+
+  function nextRelatedPage() {
+    if (relatedCurrentPage < totalRelatedPages - 1) {
+      relatedCurrentPage++;
+      updateRelatedCarousel();
+    }
+  }
+
+  function prevRelatedPage() {
+    if (relatedCurrentPage > 0) {
+      relatedCurrentPage--;
+      updateRelatedCarousel();
+    }
+  }
+
+  relatedNext.addEventListener('click', nextRelatedPage);
+  relatedPrev.addEventListener('click', prevRelatedPage);
+
+  // Touch/swipe support for related carousel
+  let touchStartX = 0;
+  let touchEndX = 0;
+
+  relatedTrack.addEventListener('touchstart', (e) => {
+    touchStartX = e.changedTouches[0].screenX;
+  });
+
+  relatedTrack.addEventListener('touchend', (e) => {
+    touchEndX = e.changedTouches[0].screenX;
+    handleSwipe();
+  });
+
+  function handleSwipe() {
+    const swipeThreshold = 50;
+    const diff = touchStartX - touchEndX;
+    
+    if (Math.abs(diff) > swipeThreshold) {
+      if (diff > 0) {
+        nextRelatedPage();
+      } else {
+        prevRelatedPage();
+      }
+    }
+  }
+
+  // Initialize
+  updateRelatedCarousel();
+
+  // Animation loop
+  const clock = new THREE.Clock();
+
+  function animate() {
+    requestAnimationFrame(animate);
+    const time = clock.getElapsedTime();
+
+    scenes.forEach((sceneData, index) => {
+      const { bookGroup, ribbon, particles, controls, renderer, scene, camera } = sceneData;
+      
+      // Only animate active slide
+      if (index === currentSlide) {
+        bookGroup.position.y = Math.sin(time * 0.5) * 0.1;
+        bookGroup.rotation.z = Math.sin(time * 0.3) * 0.02;
+        
+        particles.rotation.y = time * 0.05;
+        particles.position.y = Math.sin(time * 0.2) * 0.2;
+        
+        if (ribbon) {
+          ribbon.rotation.z = Math.sin(time * 2) * 0.05;
+        }
+        
+        controls.update();
+        renderer.render(scene, camera);
+      }
+    });
+  }
+
+  // Handle resize
+  window.addEventListener('resize', () => {
+    scenes.forEach(sceneData => {
+      const width = sceneData.container.clientWidth;
+      const height = sceneData.container.clientHeight;
+      sceneData.renderer.setSize(width, height);
+      sceneData.camera.aspect = width / height;
+      sceneData.camera.updateProjectionMatrix();
+    });
+    updateRelatedCarousel();
+  });
+
+  animate();
+
+  // Back to top button
+  const backToTop = document.getElementById('backToTop');
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 500) {
+      backToTop.classList.add('visible');
+    } else {
+      backToTop.classList.remove('visible');
+    }
+  });
+
+  backToTop.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+</script>
+
+</body>
+</html>
